@@ -193,7 +193,7 @@ class SigMake(object):
         except KsError:
             return None
         
-        print("{} -> {}".format(text_instruction, hexlify("".join(chr(e) for e in encoding))))
+        #print("{} -> {}".format(text_instruction, hexlify("".join(chr(e) for e in encoding))))
         return hexlify("".join(chr(e) for e in encoding))
 
     def get_diff_bytes(self, list_bytes):
@@ -232,18 +232,21 @@ class SigMake(object):
         for instruction in self.list_instructions:
             # Get all the similar instructions with different register names
             shuffled_instruction = self.get_similar_instructions(instruction)
-            print(shuffled_instruction)
             list_bytes = []
-            # Get the different compiled bytes for each register name
-            for text_instruction in shuffled_instruction:
-                instruction_bytes = self.compile_inst(text_instruction)
-                if instruction_bytes:
-                    list_bytes.append(instruction_bytes)
+            
+            # Avoids some artifacts due to compilation, such as jumps.
+            if len(shuffled_instruction) == 1:
+                list_bytes = [hexlify(instruction[0].bytes)]
+            else:
+                # Get the different compiled bytes for each register name
+                for text_instruction in shuffled_instruction:
+                    instruction_bytes = self.compile_inst(text_instruction)
+                    if instruction_bytes:
+                        list_bytes.append(instruction_bytes)
             
 
             # Diff all the bytes listing 
             cur_diff_bytes = self.get_diff_bytes(list_bytes)
-            print(cur_diff_bytes)
             diff_bytes += cur_diff_bytes
 
         return ''.join([diff_bytes[i] + diff_bytes[i+1] + ' ' for i in range(0,len(diff_bytes),2)])
@@ -256,3 +259,4 @@ if __name__ == "__main__":
     sig = SigMake(str_code, 32)
     sig.hl_regs()
     print sig.get_wildcard_string()
+    print "8D 14 3E 8B 7D FC 8A 0C 11 32 0C 38 40 8B 7D 10 88 0A 8B 4D 08 3B C3 72 E7"
