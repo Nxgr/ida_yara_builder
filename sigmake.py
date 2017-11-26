@@ -46,7 +46,7 @@ class SigMake(object):
         self.str_code = str_code
 
         if int_mode == 32:
-            self._dword_regs = [u'eax',  u'ebx', u'ecx', u'edx', u'edi', u'esi']
+            self._dword_regs = [u'eax',  u'ebx', u'ecx', u'edx', u'edi', u'esi', u'ebp', u'eip']
             self._word_regs  = [u'ax' ,  u'bx' , u'cx' , u'dx' , u'di' , u'si']
             self._hword_regs = [u'ah', u'al', u'bh', u'bl', u'ch', u'cl', u'dh', u'dl', u'sil', u'dil']
 
@@ -239,12 +239,18 @@ class SigMake(object):
                 list_bytes = [hexlify(instruction[0].bytes)]
             else:
                 # Get the different compiled bytes for each register name
+                print instruction[0].mnemonic
+                print instruction[1]
+                print shuffled_instruction
                 for text_instruction in shuffled_instruction:
                     instruction_bytes = self.compile_inst(text_instruction)
                     if instruction_bytes:
                         list_bytes.append(instruction_bytes)
-            
 
+                if len(list_bytes) == 0:
+                    print repr(instruction[0].bytes)
+                    list_bytes = [hexlify(instruction[0].bytes)]
+                    
             # Diff all the bytes listing 
             cur_diff_bytes = self.get_diff_bytes(list_bytes)
             diff_bytes += cur_diff_bytes
@@ -256,6 +262,7 @@ def normalize_input(s):
 
 if __name__ == "__main__":
     str_code = normalize_input("8D143E8B7DFC8A0C11320C38408B7D10880A8B4D083BC372E7").decode('hex')
+    str_code = '@\xba\x04\x00\x00\x00\xf7\xe2UV\x0f\x90\xc1\xf7\xd9\x0b\xc8'
     sig = SigMake(str_code, 32)
     sig.hl_regs()
     print sig.get_wildcard_string()
